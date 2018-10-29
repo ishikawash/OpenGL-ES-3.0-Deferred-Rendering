@@ -226,7 +226,10 @@ void update_game(Game* G)
         case kForward: add_string(G->ui, x, y, scale, "Forward renderer"); break;
         case kLightPrePass: add_string(G->ui, x, y, scale, "Deferred Lighting"); break;
         case kDeferred: add_string(G->ui, x, y, scale, "Deferred Shading"); break;
-        default: assert(!"Invalid renderer"); break;
+        default:
+                system_log("Invalid renderer");
+                assert(0);
+                break;
         }
         y -= scale;
         // Resolution

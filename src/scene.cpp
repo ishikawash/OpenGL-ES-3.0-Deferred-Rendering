@@ -58,8 +58,8 @@ static void _print_mesh_data(const MeshData* M)
     printf("\t%s\n", M->name);
     printf("\tIndex count:\t%d\n", M->index_count);
     printf("\tVertex count:\t%d\n", M->vertex_count);
-    printf("\tVertices:\t\t%p\n", M->vertices);
-    printf("\tIndices:\t\t%p\n", M->indices);
+    printf("\tVertices:\t\t%p\n", (void*)M->vertices);
+    printf("\tIndices:\t\t%p\n", (void*)M->indices);
     printf("\n");
 }
 

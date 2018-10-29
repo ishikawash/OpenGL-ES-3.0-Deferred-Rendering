@@ -63,7 +63,7 @@
     rect.size.height *= [self deviceScale];
     rect.size.width *= [self deviceScale];
 
-    if (UIDeviceOrientationIsLandscape(self.interfaceOrientation)) {
+    if (UIDeviceOrientationIsLandscape((UIDeviceOrientation)self.interfaceOrientation)) {
         CGRect temp = rect;
         rect.size.width = temp.size.height;
         rect.size.height = temp.size.width;
@@ -83,7 +83,7 @@
 -(float)deviceScale
 {
     if ([[UIScreen mainScreen] respondsToSelector:@selector(displayLinkWithTarget:selector:)] &&
-        ([UIScreen mainScreen].scale)) {
+        (fabs([UIScreen mainScreen].scale)) > 0.0f) {
         return (float)[UIScreen mainScreen].scale;
     }
     return 1.0f;
@@ -117,7 +117,7 @@
     }
     return num_points;
 }
--(NSUInteger)supportedInterfaceOrientations
+-(UIInterfaceOrientationMask)supportedInterfaceOrientations
 {
     return UIInterfaceOrientationMaskAll;
 }

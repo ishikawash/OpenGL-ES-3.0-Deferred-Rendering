@@ -288,7 +288,8 @@ void render_graphics(Graphics* G)
                              G->render_commands, G->num_render_commands,
                              G->lights, G->num_lights);
     } else {
-        assert(!"No Active Renderer");
+        system_log("No Active Renderer");
+        assert(0);
     }
     G->num_render_commands = 0;
     G->num_lights = 0;
