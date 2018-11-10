@@ -1,5 +1,5 @@
 #version 300 es
-#extension GL_EXT_shader_framebuffer_fetch : require
+// #extension GL_EXT_shader_framebuffer_fetch : require
 
 precision highp float;
 uniform sampler2D s_GBuffer[3];
