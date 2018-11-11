@@ -16,6 +16,7 @@
 
 package com.intel.deferredgles;
 
+import android.util.Log;
 import android.content.res.AssetManager;
 
 /** JNI wrapper
@@ -23,6 +24,13 @@ import android.content.res.AssetManager;
 public class JNIWrapper
 {
     static {
+        try {
+            System.loadLibrary("MGD");
+        }  catch (UnsatisfiedLinkError e)  {
+            Log.e("[ MGD ]", "MGD not loaded: " + e.getMessage());
+            Log.d("[ MGD ]", Log.getStackTraceString(e));
+        }
+
         System.loadLibrary("androidinterface");
     }
     public static native void init(int width, int height);

@@ -10,11 +10,12 @@ android {
         targetSdkVersion 26
         ndk {
             moduleName "libandroidinterface"
-            abiFilters "x86", "armeabi-v7a"
+            abiFilters "armeabi-v7a"
         }
     }
     sourceSets {
         main {
+            jniLibs.srcDirs += "/Applications/Mali_Graphics_Debugger/target/android/arm/unrooted/"
             assets.srcDirs = [ "../../../assets" ]
         }
     }
