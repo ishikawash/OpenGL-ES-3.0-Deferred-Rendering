@@ -205,12 +205,16 @@ Graphics* create_graphics(void)
     { /* Print extensions */
         char buffer[1024*32] = {0};
         uint32_t ii;
+        uint32_t j = 0;
         strlcpy(buffer,(const char*)glGetString(GL_EXTENSIONS), sizeof(buffer));
-        for(ii=0;ii<strlen(buffer);++ii) {
-            if(buffer[ii] == ' ')
-                buffer[ii] = '\n';
+        uint32_t n = strlen(buffer);
+        for(ii=0;ii<n;++ii) {
+            if(buffer[ii] == ' ') {
+                buffer[ii] = '\0';
+                system_log("%s\n", &buffer[j]);
+                j = ii + 1;
+            }
         }
-        system_log("%s\n", buffer);
     }
 
     /* Set up self */
