@@ -1,5 +1,5 @@
 #version 300 es
-// #extension GL_EXT_shader_framebuffer_fetch : require
+#extension GL_EXT_shader_pixel_local_storage : require
 
 precision highp float;
 uniform sampler2D s_GBuffer[3];
@@ -12,8 +12,6 @@ uniform vec3    u_LightColor;
 uniform vec3    u_LightPosition;
 uniform float   u_LightSize;
 
-layout(location = 0) out vec4 fragColor;
-
 vec3 decode(vec2 encoded)
 {
     vec2 fenc = encoded*4.0 - 2.0;
@@ -25,20 +23,37 @@ vec3 decode(vec2 encoded)
     return normal;
 }
 
+layout(location = 0) out vec4 fragColor;
+
+__pixel_localEXT FragDataLocal
+{
+    layout(rgb10_a2) highp vec4 albedo;
+    layout(r11f_g11f_b10f) highp vec3 normal;
+    layout(r32f) highp float depth;
+} gbuf;
+
 /** GBuffer format
  *  [0] RGB: Albedo
  *  [1] RGB: VS Normal
  *  [2] R: Depth
  */
+#if 0
+void main(void)
+{
+    // fragColor = gbuf.albedo;
+    // fragColor = vec4(0.5*gbuf.normal + 0.5, 1.0);
+    fragColor = vec4(gbuf.depth, gbuf.depth, gbuf.depth, 1.0);
+}
+#else
 void main(void)
 {
     /** Load texture values
      */
     vec2 tex_coord = gl_FragCoord.xy/u_Viewport; // map to [0..1]
 
-    vec3 albedo = texture(s_GBuffer[0], tex_coord).rgb;
-    vec3 normal = decode(texture(s_GBuffer[1], tex_coord).rg);
-    float depth = texture(s_GBuffer[2], tex_coord).r;
+    vec3 albedo = gbuf.albedo.rgb;
+    vec3 normal = gbuf.normal;
+    float depth = gbuf.depth;
 
     /* Calculate the pixel's position in view space */
     vec4 view_pos = vec4(tex_coord*2.0-1.0, depth*2.0 - 1.0, 1.0);
@@ -59,3 +74,4 @@ void main(void)
 
     fragColor = vec4(final_lighting * albedo,1.0);
 }
+#endif

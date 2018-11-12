@@ -1,5 +1,5 @@
 #version 300 es
-// #extension GL_EXT_shader_framebuffer_fetch : require
+#extension GL_EXT_shader_pixel_local_storage : require
 
 precision highp float;
 uniform sampler2D s_Albedo;
@@ -14,14 +14,18 @@ in vec3 v_TangentVS;
 in vec3 v_BitangentVS;
 in vec2 v_TexCoord;
 
-vec4 encode (vec3 normal)
+vec2 encode (vec3 normal)
 {
     float p = sqrt(normal.z*8.0+8.0);
-    return vec4(normal.xy/p + 0.5,0,0);
+    return normal.xy/p;
 }
 
-layout(location = 0) out vec4 albedoBuffer;
-layout(location = 1) out vec4 normalBuffer;
+__pixel_localEXT FragDataLocal
+{
+    layout(rgb10_a2) highp vec4 albedo;
+    layout(r11f_g11f_b10f) highp vec3 normal;
+    layout(r32f) highp float depth;
+} gbuf;
 
 void main(void) {
     /** Load texture values
@@ -42,6 +46,7 @@ void main(void) {
      *  [1] RGB: VS Normal
      *  [2] R: Depth
      */
-    albedoBuffer = vec4(albedo, 1.0);
-    normalBuffer = encode(normal);
+    gbuf.albedo = vec4(albedo, 1.0);
+    gbuf.normal = normal;
+    gbuf.depth = gl_FragCoord.z;
 }

@@ -160,25 +160,10 @@ DeferredRenderer* create_deferred_renderer(Graphics* G)
 
     /** Create Gbuffer
      */
+    // Do nothing
 
     /* Create framebuffer */
-    ASSERT_GL(glGenFramebuffers(1, &R->gbuffer_framebuffer));
-
-    ASSERT_GL(glGenTextures(GBUFFER_SIZE, R->gbuffer));
-    for(ii=0;ii<GBUFFER_SIZE;++ii) {
-        ASSERT_GL(glBindTexture(GL_TEXTURE_2D, R->gbuffer[ii]));
-        ASSERT_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-        ASSERT_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-        ASSERT_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-        ASSERT_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    }
-    ASSERT_GL(glGenTextures(1, &R->depth_buffer));
-    ASSERT_GL(glBindTexture(GL_TEXTURE_2D, R->depth_buffer));
-    ASSERT_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    ASSERT_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    ASSERT_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    ASSERT_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    ASSERT_GL(glBindTexture(GL_TEXTURE_2D, 0));
+    // Do nothing
 
     /** Geometry pass
      */
@@ -227,7 +212,6 @@ DeferredRenderer* create_deferred_renderer(Graphics* G)
 
     ASSERT_GL(glEnableVertexAttribArray(kPositionSlot));
 
-    ASSERT_GL(glUniform1iv(R->light.s_GBuffer, GBUFFER_SIZE+1, i));
     ASSERT_GL(glUseProgram(0));
 
     if(R->geometry.program == 0 ||
@@ -245,40 +229,8 @@ void destroy_deferred_renderer(DeferredRenderer* R)
 }
 void resize_deferred_renderer(DeferredRenderer* R, int width, int height)
 {
-    GLenum framebuffer_status;
     R->width = width;
     R->height = height;
-
-    /** GBuffer format
-     *  [0] RGB: Albedo
-     *  [1] RG: VS Normal (encoded)
-     *  [2] R: Depth
-     */
-    ASSERT_GL(glBindTexture(GL_TEXTURE_2D, R->gbuffer[0]));
-    ASSERT_GL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
-
-    ASSERT_GL(glBindTexture(GL_TEXTURE_2D, R->gbuffer[1]));
-    ASSERT_GL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, width, height, 0, GL_RG, GL_FLOAT, 0));
-
-    /* Depth texture */
-    ASSERT_GL(glBindTexture(GL_TEXTURE_2D, R->depth_buffer));
-    ASSERT_GL(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0));
-
-    /* Framebuffer */
-    ASSERT_GL(glBindFramebuffer(GL_FRAMEBUFFER, R->gbuffer_framebuffer));
-    ASSERT_GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, R->gbuffer[0], 0));
-    ASSERT_GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, R->gbuffer[1], 0));
-    ASSERT_GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, R->depth_buffer, 0));
-
-    framebuffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if(framebuffer_status != GL_FRAMEBUFFER_COMPLETE) {
-        system_log("%s:%d Framebuffer error: %s\n", __FILE__, __LINE__, _glStatusString(framebuffer_status));
-        assert(0);
-    }
-
-    ASSERT_GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-    ASSERT_GL(glBindTexture(GL_TEXTURE_2D, 0));
-
 }
 
 void render_deferred(DeferredRenderer* R, GLuint default_framebuffer,
@@ -287,9 +239,7 @@ void render_deferred(DeferredRenderer* R, GLuint default_framebuffer,
                      const Light* lights, int num_lights)
 {
     GLenum buffers[] = {
-        GL_COLOR_ATTACHMENT0,
-        GL_COLOR_ATTACHMENT1,
-        GL_COLOR_ATTACHMENT2,
+        GL_COLOR_ATTACHMENT0
     };
     Mat4 inv_proj = mat4_inverse(proj_matrix);
     float viewport[] = { R->width, R->height };
@@ -298,18 +248,19 @@ void render_deferred(DeferredRenderer* R, GLuint default_framebuffer,
 
     /** Geometry
      */
-    ASSERT_GL(glBindFramebuffer(GL_FRAMEBUFFER, R->gbuffer_framebuffer));
+    ASSERT_GL(glBindFramebuffer(GL_FRAMEBUFFER, default_framebuffer));
     framebuffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if(framebuffer_status != GL_FRAMEBUFFER_COMPLETE) {
         system_log("%s:%d Framebuffer error: %s\n", __FILE__, __LINE__, _glStatusString(framebuffer_status));
         assert(0);
     }
-    ASSERT_GL(glDrawBuffers(GBUFFER_SIZE, buffers));
-    ASSERT_GL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-    ASSERT_GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     ASSERT_GL(glDepthMask(GL_TRUE));
     ASSERT_GL(glDepthFunc(GL_LESS));
     ASSERT_GL(glCullFace(GL_BACK));
+    ASSERT_GL(glEnable(GL_SHADER_PIXEL_LOCAL_STORAGE_EXT));
+    ASSERT_GL(glDrawBuffers(1, buffers));
+    ASSERT_GL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+    ASSERT_GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
     ASSERT_GL(glUseProgram(R->geometry.program));
     ASSERT_GL(glUniformMatrix4fv(R->geometry.u_Projection, 1, GL_FALSE, (float*)&proj_matrix));
@@ -326,16 +277,13 @@ void render_deferred(DeferredRenderer* R, GLuint default_framebuffer,
         ASSERT_GL(glUniformMatrix4fv(R->geometry.u_World, 1, GL_FALSE, (float*)&world_matrix));
         draw_mesh(models[ii].mesh);
     }
-
+    ASSERT_GL(glActiveTexture(GL_TEXTURE0));
+    ASSERT_GL(glBindTexture(GL_TEXTURE_2D, 0));
+    ASSERT_GL(glActiveTexture(GL_TEXTURE1));
+    ASSERT_GL(glBindTexture(GL_TEXTURE_2D, 0));
 
     /** Light
      */
-    ASSERT_GL(glBindFramebuffer(GL_FRAMEBUFFER, default_framebuffer));
-    ASSERT_GL(glDrawBuffers(1, buffers));
-    ASSERT_GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, R->depth_buffer, 0));
-    ASSERT_GL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-    ASSERT_GL(glClear(GL_COLOR_BUFFER_BIT));
-
     ASSERT_GL(glEnable(GL_BLEND));
     ASSERT_GL(glBlendFunc(GL_ONE, GL_ONE));
     ASSERT_GL(glCullFace(GL_FRONT));
@@ -347,13 +295,6 @@ void render_deferred(DeferredRenderer* R, GLuint default_framebuffer,
     ASSERT_GL(glUniformMatrix4fv(R->light.u_View, 1, GL_FALSE, (float*)&view_matrix));
     ASSERT_GL(glUniformMatrix4fv(R->light.u_InvProj, 1, GL_FALSE, (float*)&inv_proj));
     ASSERT_GL(glUniform2fv(R->light.u_Viewport, 1, viewport));
-
-    for(ii=0;ii<GBUFFER_SIZE;++ii) {
-        ASSERT_GL(glActiveTexture(GL_TEXTURE0+ii));
-        ASSERT_GL(glBindTexture(GL_TEXTURE_2D, R->gbuffer[ii]));
-    }
-    ASSERT_GL(glActiveTexture(GL_TEXTURE0+ii));
-    ASSERT_GL(glBindTexture(GL_TEXTURE_2D, R->depth_buffer));
 
     for(ii=0;ii<num_lights;++ii) {
         float size = lights[ii].size;
@@ -373,10 +314,10 @@ void render_deferred(DeferredRenderer* R, GLuint default_framebuffer,
         _draw_point_light(R);
     }
 
-    ASSERT_GL(glActiveTexture(GL_TEXTURE0));
+    ASSERT_GL(glDisable(GL_SHADER_PIXEL_LOCAL_STORAGE_EXT));
     ASSERT_GL(glDisable(GL_BLEND));
     ASSERT_GL(glDepthMask(GL_TRUE));
     ASSERT_GL(glDepthFunc(GL_LESS));
     ASSERT_GL(glCullFace(GL_BACK));
-
+    ASSERT_GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
