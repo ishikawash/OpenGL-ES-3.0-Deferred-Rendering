@@ -21,7 +21,9 @@
     #include <OpenGLES/ES3/gl.h>
     #include <OpenGLES/ES3/glext.h>
 #elif defined(__ANDROID__)
+    // #define __gl2_h_
     #include <GLES3/gl3.h>
+    #include <GLES2/gl2ext.h>
 #else
     #error Need an OpenGL implementation
 #endif

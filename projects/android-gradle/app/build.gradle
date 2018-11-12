@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 18
+    compileSdkVersion 21
     buildToolsVersion "27.0.2"
 
     defaultConfig {
         applicationId "com.intel.deferredgles"
-        minSdkVersion 18
+        minSdkVersion 21
         targetSdkVersion 26
         ndk {
             moduleName "libandroidinterface"
