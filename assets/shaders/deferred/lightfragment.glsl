@@ -51,12 +51,8 @@ void main(void)
      */
     vec2 tex_coord = gl_FragCoord.xy/u_Viewport; // map to [0..1]
 
-    vec3 albedo = gbuf.albedo.rgb;
-    vec3 normal = gbuf.normal;
-    float depth = gbuf.depth;
-
     /* Calculate the pixel's position in view space */
-    vec4 view_pos = vec4(tex_coord*2.0-1.0, depth*2.0 - 1.0, 1.0);
+    vec4 view_pos = vec4(tex_coord*2.0-1.0, gbuf.depth*2.0 - 1.0, 1.0);
     view_pos = u_InvProj * view_pos;
     view_pos /= view_pos.w;
 
@@ -67,11 +63,11 @@ void main(void)
     light_dir = normalize(light_dir);
 
     /* Calculate diffuse lighting */
-    float n_dot_l = clamp(dot(light_dir, normal), 0.0, 1.0);
+    float n_dot_l = clamp(dot(light_dir, gbuf.normal), 0.0, 1.0);
     vec3 diffuse = u_LightColor * n_dot_l;
 
     vec3 final_lighting = attenuation * (diffuse);
 
-    fragColor = vec4(final_lighting * albedo,1.0);
+    fragColor = vec4(final_lighting * gbuf.albedo.rgb, 1.0);
 }
 #endif
