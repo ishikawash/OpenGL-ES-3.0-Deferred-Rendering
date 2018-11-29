@@ -20,12 +20,12 @@ vec2 encode (vec3 normal)
     return normal.xy/p;
 }
 
-__pixel_localEXT FragDataLocal
+__pixel_local_outEXT FragDataLocal
 {
     layout(rgb10_a2) highp vec4 albedo;
     layout(r11f_g11f_b10f) highp vec3 normal;
     layout(r32f) highp float depth;
-} gbuf;
+} fragData;
 
 void main(void) {
     /** Load texture values
@@ -46,7 +46,7 @@ void main(void) {
      *  [1] RGB: VS Normal
      *  [2] R: Depth
      */
-    gbuf.albedo = vec4(albedo, 1.0);
-    gbuf.normal = normal;
-    gbuf.depth = gl_FragCoord.z;
+    fragData.albedo = vec4(albedo, 1.0);
+    fragData.normal = normal;
+    fragData.depth = gl_FragCoord.z;
 }
