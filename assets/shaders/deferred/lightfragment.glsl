@@ -2,12 +2,9 @@
 #extension GL_EXT_shader_pixel_local_storage : require
 
 precision highp float;
-uniform sampler2D s_GBuffer[3];
 
 uniform mat4    u_InvProj;
-
 uniform vec2    u_Viewport;
-
 uniform vec3    u_LightColor;
 uniform vec3    u_LightPosition;
 uniform float   u_LightSize;
@@ -27,9 +24,9 @@ layout(location = 0) out vec4 fragColor;
 
 __pixel_local_inEXT FragDataLocal
 {
-    layout(rgb10_a2) highp vec4 albedo;
-    layout(r11f_g11f_b10f) highp vec3 normal;
-    layout(r32f) highp float depth;
+    layout(rgb10_a2) vec4 albedo;
+    layout(r11f_g11f_b10f) vec3 normal;
+    layout(r32f) float depth;
 } fragData;
 
 /** GBuffer format
@@ -37,14 +34,6 @@ __pixel_local_inEXT FragDataLocal
  *  [1] RGB: VS Normal
  *  [2] R: Depth
  */
-#if 0
-void main(void)
-{
-    // fragColor = fragData.albedo;
-    // fragColor = vec4(0.5*fragData.normal + 0.5, 1.0);
-    fragColor = vec4(fragData.depth, fragData.depth, fragData.depth, 1.0);
-}
-#else
 void main(void)
 {
     /** Load texture values
@@ -70,4 +59,3 @@ void main(void)
 
     fragColor = vec4(final_lighting * fragData.albedo.rgb, 1.0);
 }
-#endif
